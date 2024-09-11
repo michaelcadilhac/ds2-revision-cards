@@ -1,0 +1,215 @@
+\documentclass[12pt,letterpaper,USenglish]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{microtype}
+\usepackage{tikz}
+\usepackage{enumitem}
+\newlist{compactitem}{itemize}{3} % 3 is max-depth
+\setlist[compactitem]{label=\textbullet, nosep}
+
+\usetikzlibrary{calc,positioning,backgrounds,intersections,graphdrawing,shapes,graphs,arrows,arrows.meta,chains}
+\usegdlibrary{trees}
+
+%%% Please use define.org for macros.
+\input{define.orgtex}
+
+
+\begin{document}
+
+\tikzset{lead/.style={anchor=north west,font=\it\bfseries,text=algs4red},
+    graphs/mytree/.style= {
+    tree layout, minimum number of children=2,
+    sibling distance=5mm, level distance=5mm,
+    nodes={draw, anchor=north,minimum
+      height=13pt, fill=white,inner sep=1pt, font=\footnotesize,
+      rounded rectangle},
+    edges={very thick}},
+  graphs/shallowtree/.style={
+    mytree,level distance=1mm,sibling distance=15mm,level sep=0},
+  algs4arrow/.style={->,>={Latex[length=7pt]},line width=0.8mm,algs4red},
+  redlink/.style = {algs4red, line width=3pt},
+  heading/.style = {text width=20cm, fill=algs4red,text=white, align=left,
+  font=\sffamily\bfseries}}
+
+\noindent\begin{tikzpicture}[every node/.style={anchor=north west}]
+  % Main background
+  \begin{scope}[on background layer]
+    \fill[black!10!white, draw=white, line width=6pt] (-.5\textwidth, 0) rectangle (.5\textwidth, -18cm);
+  \end{scope}
+
+  % Clip and left margin
+  \path [save path=\theframe, rounded corners] ($(-.5\textwidth, 0) + (1.5pt,-1.5pt)$)
+                rectangle ($(.5\textwidth, -18cm) + (-1.5pt, 1.5pt)$);
+  \clip [use path=\theframe];
+  \coordinate (left) at ($(-.5\textwidth, 0) + (0.3cm,0)$);
+
+  % Title
+  \node [anchor=north,text width=20cm,minimum height=1.4cm,align=center,fill=algs4red,text=white]
+  {\sffamily\Large \textbf{3.4}\quad HASH TABLES\\[-3pt]{\small
+      The art of mapping keys to small integers}};
+
+  % Definition
+  \node [lead] (def) at (left |- 0, -1.6cm) {Definition.};
+  \node [right=0cm of def.north east, anchor=north west] {%
+    \begin{minsizebox}{.8\textwidth}{10cm}
+      A symbol table implementation where keys are mapped to small integers in
+      order to store them in a small array.  They are characterized by:
+      \begin{compactitem}
+      \item The \emph{hash function} that provides the mapping from keys to indices,
+      \item How \emph{collisions are resolved}, that is, how two keys with same
+        hash value are stored.
+      \end{compactitem}
+    \end{minsizebox}%
+  };
+
+  % Hash functions
+  \node [heading] (fun) at (-.5\textwidth,-4cm) {~~Hash functions};
+
+  %% Contract
+  \node [lead] at ($(left |- fun) + (0, -.4cm)$) (con) {Contract.};
+  \node [right=0cm of con.north east, anchor=north west] {%
+    \begin{minsizebox}{.8\textwidth}{10cm}
+      Hash code of an object does not change unless object changes; objects that
+      are \lstinline{.equals()} should have the same hash code; implemented as
+      \lstinline{public int hashCode()};
+    \end{minsizebox}
+  };
+
+  %% Example
+  \begin{scope}[shift={($(con.south west) + (0cm,-1cm)$)}]
+    % Background & lead
+    \begin{scope}[on background layer]
+      \fill[black!15] (-0.07, 0.35) rectangle (19.05, -3);
+    \end{scope}
+    \node[lead,draw=none,shape=rectangle] (ex) at (0, 0.3) {Examples.};
+    \node[right=0cm of ex.north east, anchor=north west] {%
+      \begin{minsizebox}{.8\textwidth}{10cm}
+        \begin{compactitem}[leftmargin=0.8em]
+        \item Default function for \lstinline{Object}s: \emph{saved} random
+          number or memory address.
+        \item Hash function for integers: \lstinline{return }themselves\lstinline{;}
+        \item For an array of objects \texttt{ar} (e.g., array of bytes):\\
+          \quad\lstinline{  for (Object el : ar)}\\
+          \quad\lstinline{   result = 31 * result + el.hashCode();}
+        \item Eclipse and IntelliJ provide \emph{decent} default
+          implementations.
+        \end{compactitem}
+      \end{minsizebox}
+    };
+  \end{scope}
+
+  % Collisions
+  \begin{scope}[shift={($(ex.south west) + (0cm,-3cm)$)}]
+    \node[lead,draw=none,shape=rectangle] (col) at (0, 0.3) {Collision.};
+    \node[right=0cm of col.north east, anchor=north west] {%
+      \begin{minsizebox}{.8\textwidth}{10cm}
+        A collision is when two different objects have the same hash code: they
+        would be assigned the same position in an integer-indexed array.  A good
+        hash function uniformly and independently distributes keys within its
+        range, making collisions unlikely.
+      \end{minsizebox}
+    };
+  \end{scope}
+
+  % Collision resolution approaches
+  \node [heading] (sch) at (-.5\textwidth,-11.2cm) {~~Collision resolution schemes};
+  \draw (sch.south -| 0.2, 0) -- +(0, -10cm);
+  
+  % Left Separate Chaining
+  \node[lead, yshift=-.4cm, xshift=-.1cm] (sc) at (sch -| left) {\rm\bf Separate
+    chaining.};
+
+  %% Drawing
+  \begin{scope}[shift={($(sc) + (4.75cm, -0.9cm)$)},
+    listnode/.style = {inner sep=2pt,
+      rectangle split, rectangle split horizontal,
+      rectangle split parts=2, line width=0.4pt, 
+      font=\tiny, draw, on chain},
+    node distance = 0mm and 2mm,
+    start chain = A going right
+    ] 
+    \node at (0, 0.6cm) {\texttt{A}};
+    \node[rectangle split,
+    rectangle split parts=5, thick, draw] (H) {\nodepart{four}
+    \(\vdots\)\rlap{\phantom{\rule[-.3cm]{2pt}{.8cm}}}};
+    \foreach \x/\y in {one west/0,two west/1,three west/2,five west/M-1} {
+      \node[anchor=east] at ($(H.\x) + (-.1cm, 0)$) {\color{algs4red}\texttt{\y}};
+    }
+
+    \node[anchor=center] at (H.one north |- H.one east) {\tiny\(\emptyset\)};
+
+    \node[listnode, right=of H.two east] {\(\langle\texttt{a},\texttt{7}\rangle\)\nodepart{two}\phantom{\(\emptyset\)}};
+    \node[listnode] {\(\langle\texttt{u},\texttt{3}\rangle\)\nodepart{two}\(\emptyset\)};
+    \draw[Circle-Stealth]   (H.two |- H.two east)       -- (A-1);
+    \draw[Circle-Stealth]    (A-1.two |- A-1.two east)  -- (A-2);
+    
+    \node[listnode, right=of H.three east] {\(\langle\texttt{e},\texttt{2}\rangle\)\nodepart{two}\(\emptyset\)};
+    \draw[Circle-Stealth]   (H.three |- H.three east)       -- (A-3);
+
+
+    \node[listnode, right=of H.five east] {\(\langle\texttt{z},\texttt{9}\rangle\)\nodepart{two}\(\emptyset\)};
+    \draw[Circle-Stealth]   (H.five |- H.five east)       -- (A-4);
+
+
+    \begin{scope}[on background layer]
+      \fill[black!15!white] (-1cm,.6cm) rectangle
+                                (2.9cm, -3.3cm);
+    \end{scope}
+  \end{scope}
+
+  %% Idea
+  \node[yshift=-0.6cm, xshift=0.2cm, lead] at (sc.west) (idea) {Idea.};
+  \node[right=0cm of idea.north east,anchor=north west] {%
+    \begin{minsizebox}{3.7cm}{10cm}
+       Array \texttt{A} contains \texttt{M} \texttt{SequentialSearchST}, and
+      \texttt{put}, \texttt{get}, \texttt{delete} for key \texttt{k} are
+      delegated to the linked list at \texttt{A[k.hashCode() \% M]}.
+    \end{minsizebox}};
+
+  %% Costs
+  \node[yshift=-3.6cm,lead] at (idea.west) (costs) {Costs.};
+  \node[right=0cm of costs] {Expected number of probes: \(\~{} N/M\).};
+
+  % Right Linear Probing
+  \node[lead, yshift=-.4cm] (lp) at (sch -| 0.4cm, 0cm) {\rm\bf Linear probing.};
+
+  %% Idea
+  \node[yshift=-0.3cm, xshift=0.2cm, lead] at (lp.west) (idea) {Idea.};
+  \node[right=0cm of idea.north east,anchor=north west] {%
+    \begin{minsizebox}{.4\textwidth}{10cm}
+      Array \texttt{A} contains \texttt{M Key}s.  When \texttt{N} keys
+      stored, ensure \(\alpha = {\texttt{N}\over \texttt{M}}\) is in
+      \(\big[{1\over 8}, {1 \over 2}\big]\) by resizing.
+    \end{minsizebox}};
+
+  \node[anchor=north west] at ($(idea.south west) + (.5cm, -.65cm)$)
+  {
+    \begin{minsizebox}{.4\textwidth}{10cm}
+    \myto{} \texttt{put(k, v)}: store in cell \texttt{(k.hashCode() \% M)} of
+      array \texttt{A} or first \lstinline{null} successor.\\
+      \myto{} \texttt{get(k)}: look in cell \texttt{(k.hashCode() \% M)} of array
+      \texttt{A} and non-\lstinline{null} successors. \\
+      \myto{} \texttt{delete(k)}: put \lstinline{null} in correct cell, reinsert
+      all non-\lstinline{null} successors.
+    \end{minsizebox}};
+  \node[below=0.85cm of idea.west,xshift=0.3cm,anchor=north west] (theidea) {%
+    \begin{minsizebox}{.4\textwidth}{10cm}
+    \end{minsizebox}};
+
+  %% Costs
+  \node[yshift=-4.22cm,lead] at (idea.west) (costs) {Costs.};
+  \node[right=0cm of costs] {Expected number of probes: \(O\big(1/(1-\alpha)^2\big)\).};
+
+  
+  
+
+  %% Box
+  \draw [algs4red,line width=3pt] [use path=\theframe];
+
+\end{tikzpicture}
+\end{document}
+%%% Local Variables:
+%%% ispell-local-dictionary: "en_US"
+%%% TeX-master: t
+%%% End:

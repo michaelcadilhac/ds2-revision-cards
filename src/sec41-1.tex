@@ -1,0 +1,233 @@
+\documentclass[12pt,letterpaper,USenglish]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{microtype}
+\usepackage{tikz}
+\usepackage{paralist}
+\usetikzlibrary{calc,positioning,backgrounds,intersections,graphdrawing,shapes,graphs,arrows,arrows.meta,chains}
+\usegdlibrary{trees}
+
+%%% Please use define.org for macros.
+\input{define.orgtex}
+
+\begin{document}
+
+\newcommand{\rempos}[1]{%
+  \begin{tikzpicture}[remember picture,overlay]
+    \node (#1) {};
+  \end{tikzpicture}}
+
+\tikzset{lead/.style={anchor=north west,font=\it\bfseries,text=algs4red},
+  treenode/.style={draw, minimum
+      height=13pt, fill=white,inner sep=3pt, font=\footnotesize,
+      rounded rectangle},
+    algs4arrow/.style={->,>={Latex[length=7pt]},line width=0.8mm,algs4red},
+    graphs/mytree/.style= {
+    tree layout,
+    sibling distance=5mm, level distance=5mm,
+    nodes={treenode},
+    edges={thick}},
+  gnode/.style={draw,circle,treenode,font=\ttfamily\footnotesize},
+  algs4arrow/.style={->,>={Latex[length=7pt]},line width=0.8mm,algs4red},
+  redlink/.style = {algs4red, line width=3pt},
+  heading/.style = {text width=20cm, fill=algs4red,text=white, align=left,
+  font=\sffamily\bfseries}}
+
+
+\def\mm#1{\text{\small\normalfont\color{algs4red}\itshape\ensuremath{#1}}}
+\def\myto{\mm{\to}}
+\def\t#1{\texttt{\color{algs4red}#1}}
+
+\newsavebox{\codebox}% For saving code
+\begin{lrbox}{\codebox}
+\begin{lstalgs4}
+     public class |Graph|
+$\rlap{\rule[15pt]{15cm}{.3pt}}$                  Graph(int V)           @$\myto$ new $\t{V}$-vertex, $\t{0}$-edge graph
+              int V(), E()               @$\myto$ number of vertices/edges
+             void addEdge(int v, int w)  @$\myto$ add edge $\t{v-w}$
+Iterable<Integer> adj(int v)             @$\myto$ vertices adjacent to $\t{v}$
+\end{lstalgs4}
+\end{lrbox}
+
+
+\noindent\begin{tikzpicture}[every node/.style={anchor=north west},remember picture]
+  % Main background
+  \begin{scope}[on background layer]
+    \fill[black!10!white, draw=white, line width=6pt] (-.5\textwidth, 0) rectangle (.5\textwidth, -18cm);
+  \end{scope}
+
+  % Clip and left margin
+  \path [save path=\theframe, rounded corners] ($(-.5\textwidth, 0) + (1.5pt,-1.5pt)$)
+  rectangle ($(.5\textwidth, -18cm) + (-1.5pt, 1.5pt)$);
+  \clip [use path=\theframe];
+  \coordinate (left) at ($(-.5\textwidth, 0) + (0.3cm,0)$);
+
+  % Title
+  \node [anchor=north,text width=20cm,minimum height=1.4cm,align=center,fill=algs4red,text=white]
+  {\sffamily\Large \textbf{4.1}\quad UNDIRECTED GRAPHS: BASICS};
+
+  % Definition
+  \node [lead] (def) at (left |- 0, -1.6cm) {Definition.};%
+  \node [right=0cm of def] {A set of \emph{vertices} (nodes) and a collection of \emph{edges} that
+    connect unordered pairs of vertices.};
+
+  %% Glossary lead
+  \node [heading] (glos) at (-.5\textwidth,-2.5cm) {~~Glossary};
+  \draw (glos.south -| 0.0, 0) -- +(0, -6.5cm);
+
+  \def\mph#1{\emph{\color{algs4red}#1}}
+  \node at ($(glos.south west) + (-.2cm, -.2cm)$) {\begin{minsizebox}{9.2cm}{10cm}
+      \begin{compactitem}
+      \item Two connected vertices are \mph{adjacent}, the edge between them is
+        \mph{incident} to both.
+      \item \mph{Degree} of a vertex: \# of adjacent vertices.
+      \item \mph{Subgraph}: graph obtained by selecting a subset of edges and
+        associated vertices.
+      \item \mph{Dense} graph: when \(\texttt{E()}\, \~{}\; \texttt{V()}^2\);
+        \mph{sparse} if far from it.
+      \item \mph{Path}: sequence of adjacent vertices.
+      \item \mph{Cycle}: path that starts and ends in the same vertex.
+      \item[]\quad\tikznbb \draw[thick,algs4red] (-0.8cm, 1.3cm) -- ++(-0.2cm, 0) --
+        ++(0, -0.9cm) -- ++(0.2cm, 0) -- ++(-0.1cm, 0) edge[bend right=23, ->] +(0.8cm, -0.3cm);%
+        \mph{simple} if no repeated vertex/edge.
+      \item \mph{Connected} graph: graph in which there is a path between any
+        two of vertices.
+      \end{compactitem}
+    \end{minsizebox}};
+  \node at ($(glos.south west) + (9.7cm, -.2cm)$) {\begin{minsizebox}{9.2cm}{10cm}
+      \begin{compactitem}
+    \item \mph{Connected component}: maximal connected subgraph.
+      \item \mph{Tree}: acyclic connected graph.
+      \item \mph{Forest}: union of trees.
+      \item \mph{Spanning tree} of graph: subgraph that contains all vertices of
+        the graph and is a tree.
+      \item \mph{\(N\)-colorable} graph: a graph in which each vertex can be given
+        one of \(N\) colors such that no two adjacent vertices have the same
+        color.
+      \item \mph{Bipartite} graph: a 2-colorable graph.
+      \end{compactitem}
+    \end{minsizebox}};
+  
+  %% implem
+  \node [heading] (apiimp) at (-.5\textwidth,-9.5cm) {~~API \& Implementations};
+  \node (code) at ($(apiimp.south west) + (2cm, 0)$) {\usebox{\codebox}};
+
+  % Adjacency matrix
+  \begin{scope}[anchor=north west, shift={($(code.south west -| left) + (0.5, -0.1cm)$)}]
+    % Background & lead
+    \begin{scope}[on background layer]
+      \fill[black!15] (-.1, 0) rectangle (7.6cm, -4.5);
+    \end{scope}
+
+    \node[lead] {Adjacency matrix.};
+    \node at (0.1cm, -.7cm) {\lstinline {int[][] M = $\begin{bmatrix}
+          \rempos{top}\texttt{0} & \texttt{1} & \texttt{0} & \texttt{1}\\
+          \texttt{1} & \texttt{0} & \texttt{1} & \texttt{1}\rempos{one}\\
+          \texttt{0} & \texttt{1} & \texttt{0} & \texttt{0}\\
+          \texttt{1} & \texttt{1}\rempos{onep} & \texttt{0} & \texttt{0}\rempos{bot}
+        \end{bmatrix}$}};
+    \begin{scope}[on background layer]
+      \coordinate (mtop) at  ($(top) + (-0.2, 0.4)$);
+      \draw[thick,dashed,opacity=.5,algs4red!80] (mtop) -- (bot);
+      \draw ($(mtop)!.5!(bot)$) edge[bend left,black!70, ->] 
+      node [pos=1,font=\small,anchor=west] {\color{black!70}\emph{symmetry axis}}
+      ++(0.8cm, 1.3cm);
+      \node[anchor=center, circle,fill=algs4red!20,draw=algs4red,minimum
+      size=.4cm,thick] (tone) at ($(one) + (-.5em, .55em)$) {};
+      \node[anchor=center, circle,fill=algs4red!20,draw=algs4red,minimum
+      size=.4cm,thick] (tonep) at ($(onep) + (-.5em, .55em)$) {};
+
+      \draw (tone) edge[->,bend right=10,black!70] node (k)
+      [pos=1,font=\small,anchor=west] {\color{black!70}\emph{edge} \texttt{1-3}}
+      ++(.5cm, .1cm);
+      \draw (tonep) edge[->,bend right=10,black!70] (k);
+    \end{scope}
+    \node at (-.5cm, -3.2cm) {%
+      \begin{minsizebox}{7.5cm}{10cm}
+      \begin{compactitem}
+      \item Pros: \(O(1)\) query/add/delete time.
+      \item Cons: \texttt{V()}\({}^2\) memory usage, slow \texttt{adj()}.
+      \end{compactitem}
+    \end{minsizebox}};
+  \end{scope}
+
+  %% graph example
+  \node[gnode,anchor=center] at ($(code.south -| 0, 0)+(0, -.5cm)$) (0) {0};
+  \node[below=.5cm of 0,gnode] (1) {1};
+  \node[below=.5cm of 1,gnode] (2) {2};
+  \node[below=.5cm of 2,gnode] (3) {3};
+
+  \draw[thick] (0) edge (1)
+                   edge[bend left] (3)
+               (1) edge (2)
+                   edge [bend right=35] (3);
+
+  % Adjacency lists
+  \begin{scope}[anchor=north west, shift={($(code.south) + (-.65cm, -0.1cm)$)}]
+    % Background & lead
+    \begin{scope}[on background layer]
+      \fill[black!15] (-.1, 0) rectangle (7.6cm, -4.5);
+    \end{scope}
+
+    \node[lead] {Adjacency lists.};
+    \node at (0.1,-1.6cm) {\lstinline{Bag[] A = }};
+
+    \begin{scope}[shift={($(2.1cm, -0.9cm)$)},
+      listnode/.style = {inner sep=2pt,%fill=white,
+        rectangle split, rectangle split horizontal,
+        rectangle split parts=2, line width=0.4pt, draw, on chain},
+      node distance = 0mm and 2mm,
+      start chain = A going right
+      ]
+      \node[rectangle split,fill=white,
+      rectangle split parts=4, thick, draw] (H) {};
+
+      \def\nope{\scriptsize\(\emptyset\)}
+      \node[listnode, right=of H.one east] {\texttt{1}\nodepart{two}\phantom{\nope}};
+      \node[listnode] {\texttt{3}\nodepart{two}\nope};
+      \draw[Circle-Stealth]   (H.one |- H.one east)       -- (A-1);
+      \draw[Circle-Stealth]    (A-1.two |- A-1.two east)  -- (A-2);
+
+      \node[listnode, right=of H.two east] {\texttt{0}\nodepart{two}\phantom{\nope}};
+      \node[listnode] {\texttt{2}\nodepart{two}\phantom{\nope}};
+      \node[listnode] {\texttt{3}\nodepart{two}\nope};
+      \draw[Circle-Stealth]   (H.two |- H.two east)       -- (A-3);
+      \draw[Circle-Stealth]    (A-3.two |- A-3.two east)  -- (A-4);
+      \draw[Circle-Stealth]    (A-4.two |- A-4.two east)  -- (A-5);
+
+    
+      \node[listnode, right=of H.three east] {\texttt{1}\nodepart{two}\nope};
+      \draw[Circle-Stealth]   (H.three |- H.three east)       -- (A-6);
+
+      \node[listnode, right=of H.four east] {\texttt{0}\nodepart{two}\phantom{\nope}};
+      \node[listnode] {\texttt{1}\nodepart{two}\nope};
+      \draw[Circle-Stealth]   (H.four |- H.four east)       -- (A-7);
+      \draw[Circle-Stealth]    (A-7.two |- A-7.two east)  -- (A-8);
+
+      \begin{scope}[on background layer]
+        \node[anchor=center,draw=algs4red, fill=algs4red!20,rectangle, minimum
+        height=.5cm, minimum width=.85cm] at (A-5) (blob) {};
+        \node[anchor=center,draw=algs4red, fill=algs4red!20,rectangle, minimum
+        height=.5cm, minimum width=.85cm] at (A-8) (blobp) {};
+       \draw (blob) edge[->,bend right=10,black!70] node (k)
+        [pos=1,font=\small,anchor=west] {\color{black!70}\emph{edge}
+          \texttt{1-3}} ++(1cm, .1cm);
+        \draw (blobp) edge[->,bend right=10,black!70]  (k);
+      \end{scope}
+  \end{scope}
+    \node at (-.5cm, -3.2cm) {%
+      \begin{minsizebox}{7cm}{10cm}
+      \begin{compactitem}
+      \item Pros: optimal \lstinline{adj()}, space \(\texttt{E()} + \texttt{V()}\).
+      \item Cons: delete/query slow.
+      \end{compactitem}
+    \end{minsizebox}};
+\end{scope}  
+  
+
+  %% Box
+  \draw [algs4red,line width=3pt] [use path=\theframe];
+
+\end{tikzpicture}
+\end{document}

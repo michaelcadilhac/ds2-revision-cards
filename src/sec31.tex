@@ -1,0 +1,173 @@
+\documentclass[12pt,letterpaper,USenglish]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{microtype}
+\usepackage{tikz}
+\usetikzlibrary{calc,positioning,backgrounds,intersections,graphdrawing,shapes,graphs,arrows,arrows.meta,chains}
+
+\usepackage{paralist}
+
+\input{define.orgtex}
+
+\begin{document}
+
+\newsavebox{\codebox}% For saving code
+\begin{lrbox}{\codebox}
+\begin{lstalgs4}
+ public class |ST|<Key, Value>
+$\rlap{\rule[15pt]{15cm}{.3pt}}$         void put (Key, Value)          @$\myto$ put key-value pair in table
+        Value get (Key)                 @$\myto$ get value paired with key
+Iterable<Key> keys()                    @$\myto$ iterator over the keys
+              delete(Key), contains(Key), 
+              isEmpty(),  size()        @$\myto$ helper functions
+          int rank(Key)                 @$\myto$ number of keys less than argument
+Iterable<Key> keys(Key, Key)            @$\myto$ iterator between two keys
+              min(), max(), floor(Key),
+              ceiling(Key), select(int) @$\myto$ helper functions
+\end{lstalgs4}
+\end{lrbox}
+
+% public class |ST|<Key, Value> {
+%            void put (Key, Value) @$\myto$ put key-value pair in table
+%           Value get (Key) @$\myto$ get value paired with key
+%   Iterable<Key> keys() @$\myto$ iterator over the keys
+%                 delete(Key), contains(Key), 
+%                 isEmpty(),  size() @$\myto$ helper functions
+%             int rank(Key) @$\myto$ number of keys less than argument
+%   Iterable<Key> keys(Key, Key) @$\myto$ iterator between two keys
+%                 min(), max(), floor(Key),
+%                 ceiling(Key), select(int) @$\myto$ helper functions
+% }
+
+\makeatletter
+\tikzset{use path/.code=\tikz@addmode{\pgfsyssoftpath@setcurrentpath#1}}
+\makeatother
+\tikzset{lead/.style={anchor=north west,font=\it\bfseries,text=algs4red}}
+\noindent\begin{tikzpicture}[every node/.style={anchor=north west}]
+  % Main background
+  \begin{scope}[on background layer]
+    \fill[black!10!white, draw=white, line width=6pt] (-.5\textwidth, 0) rectangle (.5\textwidth, -18cm);
+  \end{scope}
+
+  % Clip and left margin
+  \path [save path=\theframe, rounded corners] ($(-.5\textwidth, 0) + (1.5pt,-1.5pt)$)
+                rectangle ($(.5\textwidth, -18cm) + (-1.5pt, 1.5pt)$);
+  \clip [use path=\theframe];
+  \coordinate (left) at ($(-.5\textwidth, 0) + (0.3cm,0)$);
+
+  % Title
+  \node [anchor=north,text width=20cm,minimum height=1.4cm,align=center,fill=algs4red,text=white]
+  {\sffamily\Large \textbf{3.1}\quad SYMBOL TABLES\\[-3pt]{\small(a.k.a.~associative arrays)}};
+
+  % Definition
+  \node [lead] (def) at (left |- 0, -1.6cm) {Definition.};
+  \node [right=0cm of def] {A data structure for key-value pairs.};
+
+  % Examples
+  \node [lead] (exp) at (def.north -| 0, 0) {Examples.};
+  \node [right=0cm of exp] {Dictionary, book index, frequency counter.};
+
+  % API
+  \node [lead] (api) at (left |- 0, -2.5cm) {\textbf{\textsc{API.}}};
+  \node [xshift=1cm, yshift=.1cm, text width=15cm] (code) at (api.north) {\usebox{\codebox}};
+  \node (a) [xshift=14.1cm,yshift=-1.8cm,text width=4cm,align=right] at (api.north) {when \lstinline[columns=fullflexible]{Key extends Comparable<Key>}};
+  \path[->] ($(a.south)+(0.3cm,0)$) edge[bend left] +(-0.5cm,-1.3cm);
+  %% Backgrounds
+  \begin{scope}[on background layer]
+    \fill[black!15!white] (code.north east) rectangle (code.south west);
+    \fill[gray!50!white] ($(api) + (1.1cm, -3cm)$)  rectangle ($(api) + (16cm, -5.1cm)$);
+  \end{scope}
+
+  % Implementations
+  \node [text width=20cm, fill=algs4red,text=white, align=left] (implem) at (-.5\textwidth,-8.7cm)
+  {\sffamily\bfseries ~~Elementary implementations};
+  \draw (implem.south -| 0, 0) -- +(0, -10cm);
+
+  % Linked lists
+  \node[lead, yshift=-.4cm] (llp) at (implem -| left) {\rm\bf Linked list of pairs
+    \(\langle\)key, value\(\rangle\).};
+  %% Example of list
+  \begin{scope}[shift={($(llp.west) + (1.5cm,-.8cm)$)},
+    every node/.style={rectangle,draw, inner sep=0pt}, node distance=.5cm and .5cm]
+    %\node (a1) {};
+    %\node (b1) [anchor=west] at (a1.east) {\(\bullet\)};
+    \newcommand{\listitem}[3][\bullet]{%
+      \begin{tabular}{@{\hspace{.1cm}}c@{\hspace{.1cm}}|c}
+        \footnotesize \(\langle\texttt{#2}, \texttt{#3}\rangle\)&\(\color{algs4red}#1\)
+      \end{tabular}}
+    \node (n1) {\listitem{E}{6}};
+    \node (n2) [right=of n1] {\listitem{A}{3}};
+    \draw[->] ($(n1.east)+(-.25cm,0)$) -- (n2.west);
+    \node (n3) [right=of n2] {\listitem{Z}{4}};
+    \draw[->] ($(n2.east)+(-.25cm,0)$) -- (n3.west);
+    \node (n4) [right=of n3] {\listitem[\times]{X}{4}};
+    \draw[->] ($(n3.east)+(-.25cm,0)$) -- (n4.west);
+    \begin{scope}[on background layer]
+      \fill[black!15!white] ($(n1.north west)+(-2mm,2mm)$) rectangle
+                           ($(n4.south east)-(-2mm,2mm)$);
+    \end{scope}
+  \end{scope}
+  %% Algos
+  \node[yshift=-1.4cm,xshift=-.4cm] at (llp.west) {\vbox{
+      \begin{compactitem}
+      \item \lstinline{get(Key)}: search sequentially in list
+      \item \lstinline{put(Key k, Value v)}: search for \lstinline{k} sequentially then\\[-1em]
+        \begin{compactitem}
+        \item Hit \(\to\) Update value with \lstinline{v}
+        \item Miss \(\to\) Insert pair \(\langle\textlstinline{k},\textlstinline{v}\rangle\) in front
+        \end{compactitem}
+      \end{compactitem}
+      \vspace{.3cm}
+      \mbox{}\hspace{0.6cm}{\color{algs4red}\textbf{\emph{Costs.}}}\quad On list of length \(n\):
+      \begin{compactitem}
+      \item \lstinline{get(Key)}: worst case \(n\) (go through whole list)
+      \item \lstinline{put(Key, Value)}: same, since search first
+      \end{compactitem}
+    }};
+  
+  % Binary search
+  \node[lead] (bs) at (llp.north -| 3pt, 0) {\rm\bf Two arrays, \texttt{keys[]} (sorted)
+    \& \texttt{vals[]}.};
+  %% Example of sorted arrays
+  \begin{scope}[shift={($(bs.west) + (2.1cm,-.3cm)$)}]
+    \node[fill=black!15!white] {\ttfamily%
+      \begin{tabular}{rcccc}
+        \arrayrulecolor{algs4red}
+        &0&1&2&3\\\hline
+        keys[]& A & E & X & Z\\[-3pt]
+        vals[]& 3 & 6 & 4 & 4
+      \end{tabular}
+    };
+  \end{scope}
+  
+  %% Algos
+  \node[yshift=-2.1cm,xshift=-.4cm] at (bs.west) {\parbox{.45\textwidth}{
+    \begin{compactitem}
+    \item \lstinline{get(Key)}: bin.\ search in \lstinline{keys} \(\to\)
+      pos.\ in \lstinline{vals}
+    \item \lstinline{put(Key k, Value v)}: bin.\ search in \lstinline{keys} then\\[-1em]
+      \begin{compactitem}
+      \item Hit \(\to\) Update value with \lstinline{v}
+      \item Miss \(\to\) Insert \lstinline{k} at correct position, shift all
+        following elements, same for \lstinline{v}
+      \end{compactitem}
+    \end{compactitem}
+    \vspace{.3cm}
+    \mbox{}\hspace{0.6cm}{\color{algs4red}\textbf{\emph{Costs.}}}\quad On list of length \(n\):
+    \begin{compactitem}
+    \item \lstinline{get(Key)}: worst case \(\log n\) (each step, search space
+      size divided by 2)
+    \item \lstinline{put(Key, Value)}: worst case \(n\) (if insert in first
+      position, must shift all following elements)
+    \end{compactitem}}};
+
+  %% Box
+  \draw [algs4red,line width=3pt] [use path=\theframe];
+
+\end{tikzpicture}
+\end{document}
+%%% Local Variables:
+%%% ispell-local-dictionary: "en_US"
+%%% TeX-master: t
+%%% End:

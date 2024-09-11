@@ -1,0 +1,194 @@
+\documentclass[12pt,letterpaper,USenglish]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{microtype}
+\usepackage{tikz}
+\usepackage{paralist}
+\usetikzlibrary{calc,positioning,backgrounds,intersections}
+
+%%% Please use define.org for macros.
+\input{define.orgtex}
+
+\begin{document}
+
+\makeatletter
+\tikzset{use path/.code=\tikz@addmode{\pgfsyssoftpath@setcurrentpath#1}}
+\makeatother
+\tikzset{lead/.style={anchor=north west,font=\it\bfseries,text=algs4red}}
+
+\newsavebox{\searchcode}% For saving code
+\begin{lrbox}{\searchcode}
+\begin{lstalgs4}
+|get|(node, key)      @$\myto$ search a key in subtree
+$\rlap{\rule[15pt]{8.5cm}{.3pt}}$if (node == null) return !search miss!
+!compare !node.key! with !key:
+  !equal! $\to$ return !search hit!
+  !greater! $\to$ get(node.left, key)
+  !smaller! $\to$ get(node.right, key)
+\end{lstalgs4}
+\end{lrbox}
+
+\newsavebox{\putcode}% For saving code
+\begin{lrbox}{\putcode}
+\begin{lstalgs4}
+|put|(node, key, v)   @$\myto$ subtree with new/updated pair
+$\rlap{\rule[15pt]{10.3cm}{.3pt}}$if (node == null) return pair(key, v)
+!compare !node.key! with !key:
+  !equal! $\to$ node.val = v
+  !greater! $\to$ node.left = put(node.left, key, v)
+  !smaller! $\to$ node.right = put(node.right, key, v)
+return node
+\end{lstalgs4}
+\end{lrbox}
+
+\newsavebox{\floorcode}% For saving code
+\begin{lrbox}{\floorcode}
+\begin{lstalgs4}
+|floor|(node, key)    @$\myto$ greatest key $\mm{\leq \texttt{key}}$
+$\rlap{\rule[15pt]{8.85cm}{.3pt}}$if (node == null) return null
+!compare !node.key! with ! key:
+  !equal! $\to$ return key
+  !greater! $\to$ return floor(node.left, key)
+  !smaller! $\to$ return (floor(node.right, key)
+                    $\color{blue}\texttt{or}$ node.key)
+\end{lstalgs4}
+\end{lrbox}
+
+\newsavebox{\dmincode}% For saving code
+\begin{lrbox}{\dmincode}
+\begin{lstalgs4}
+|deleteMin|(node) @$\myto$ subtree without min
+$\rlap{\rule[15pt]{7cm}{.3pt}}$if (node.left == null)
+  return node.right
+node.left = deleteMin(node.left)
+return node
+\end{lstalgs4}
+\end{lrbox}
+
+
+\newsavebox{\deletecode}% For saving code
+\begin{lrbox}{\deletecode}
+\begin{lstalgs4}
+|delete|(key)          @$\hspace{4pt}\myto$ remove $\mm{\texttt{key}}$ in place
+$\rlap{\rule[15pt]{8.2cm}{.3pt}}$!find !node! with !key.equals(node.key)! if any!
+if (node! has 0/1 child!)
+  !replace !node! with that child!
+else
+  !copy !min(node.right)!'s pair into !node
+  node.right = deleteMin(node.right)
+\end{lstalgs4}
+\end{lrbox}
+
+
+\noindent\begin{tikzpicture}[every node/.style={anchor=north west}]
+  % Main background
+  \begin{scope}[on background layer]
+    \fill[black!10!white, draw=white, line width=6pt] (-.5\textwidth, 0) rectangle (.5\textwidth, -18cm);
+  \end{scope}
+
+  % Clip and left margin
+  \path [save path=\theframe, rounded corners] ($(-.5\textwidth, 0) + (1.5pt,-1.5pt)$)
+                rectangle ($(.5\textwidth, -18cm) + (-1.5pt, 1.5pt)$);
+  \clip [use path=\theframe];
+  \coordinate (left) at ($(-.5\textwidth, 0) + (0.3cm,0)$);
+
+  % Title
+  \node [anchor=north,text width=20cm,minimum height=1.4cm,align=center,fill=algs4red,text=white]
+  {\sffamily\Large \textbf{3.2}\quad BINARY SEARCH TREES\\[-3pt]{\small(towards
+      efficient symbol tables)}};
+
+  % Definition
+  \node [lead] (def) at (left |- 0, -1.6cm) {Definition.};
+  \node [right=0cm of def.north east, anchor=north west] {%
+    \begin{minsizebox}{.8\textwidth}{10cm}
+      A binary tree where each node's key is strictly greater than its left children's keys
+      and strictly smaller than its right children's keys.  
+    \end{minsizebox}%
+    };
+
+    
+  % Example
+  \begin{scope}[shift={($(def.east) + (12cm,-1.6cm)$)},
+    every node/.style={draw, circle,inner sep=0pt,minimum
+      width=15pt,font=\footnotesize}]
+    % Background & lead
+    \begin{scope}[on background layer]
+      %\fill[black!15] (-1.8, 1.1) rectangle (4.2, -3);
+      \fill[black!15] (-3.0, 0.5) rectangle (4.2, -3);
+    \end{scope}
+    %\node[lead,draw=none,shape=rectangle] at (-1.5, 1) {Example.};
+    \node[lead,draw=none,shape=rectangle] at (-2.8, 0.3) {Example.};
+
+    % Nodes
+    \node (7) {\(7\)};
+    \node (4) at (-1, -0.8) {\(4\)};
+    \node (42) at (1.4, -0.8) {\(42\)};
+    \node (38) at (0.5, -1.6) {\(38\)};
+    \node (40) at (0.9, -2.4) {\(40\)};
+    \node (66) at (2.4, -1.6) {\(66\)};
+    \node (50) at (1.8, -2.4) {\(50\)};
+    \node (70) at (3.0, -2.4) {\(70\)};
+
+    % Links
+    \draw[very thick]
+                 (7) edge (4)
+                     edge (42)
+                 (42) edge (38)
+                      edge (66)
+                 (38) edge (40)
+                 (66) edge (50)
+                      edge (70);
+
+    % Blobs
+    \begin{scope}[on background layer]
+      \draw[algs4red, fill=algs4red!20, thick] \convexpath{70,50,66}{.4cm};
+      \draw[algs4red, fill=algs4red!20, thick] \convexpath{38,40}{.4cm};
+    \end{scope}
+    \node[draw=none, shape=rectangle, inner sep=3pt, text width=2cm,align=center] (m42) at (3.3, -0.5) {greater than \(42\)};
+    \draw[algs4red] (m42) edge [bend left, ->] +(-0.4, -0.8);
+    \node[draw=none, shape=rectangle, inner sep=3pt, text
+    width=1.4cm,align=center] (l42) at (-1.4, -2.2) {between 7 and \(42\)};
+    \draw[algs4red] (l42.east) edge [bend right, ->] +(0.8, 0.1);
+  \end{scope}
+
+  % Codes
+  \node [xshift=0.2cm, yshift=-0.8cm, text width=8.5cm] (scode) at (def.south west) {\usebox{\searchcode}};
+  \node [xshift=0.2cm, yshift=-4.8cm, text width=10.3cm] (pcode) at (def.south west) {\usebox{\putcode}};
+  \node [xshift=11.5cm, yshift=-4.8cm, text width=7cm] (dmincode) at (def.south west) {\usebox{\dmincode}};
+  \node [xshift=0.2cm, yshift=-9.3cm, text width=9cm] (fcode) at (def.south west) {\usebox{\floorcode}};
+  \node [xshift=10.3cm, yshift=-9.3cm, text width=8.2cm] (dcode) at (def.south west) {\usebox{\deletecode}};
+  %% Backgrounds
+  \begin{scope}[on background layer]
+    \fill[black!15!white] (scode.north east) rectangle (scode.south west);
+    \fill[black!15!white] (pcode.north east) rectangle (pcode.south west);
+    \fill[black!15!white] (fcode.north east) rectangle (fcode.south west);
+    \fill[black!15!white] (dmincode.north east) rectangle (dmincode.south west);
+    \fill[black!15!white] (dcode.north east) rectangle (dcode.south west);
+  \end{scope}
+
+  
+
+  % Costs
+  \node [text width=20cm, fill=algs4red,text=white, align=left] (costs) at (-.5\textwidth,-16cm)
+  {\sffamily\bfseries ~~Costs};
+  \node [text width=.9\textwidth] at ($(left |- costs) + (0, -.1cm)$) {
+    \begin{compactitem}
+    \item All operations have a worst case execution time proportional to the
+      depth of the tree.
+    \item A tree obtained by inserting \(N\) random keys has expected depth \(\~{}\lg N\)
+      (most balanced tree).
+    \end{compactitem}
+  };
+
+
+
+  %% Box
+  \draw [algs4red,line width=3pt] [use path=\theframe];
+
+\end{tikzpicture}
+\end{document}
+%%% Local Variables:
+%%% ispell-local-dictionary: "en_US"
+%%% TeX-master: t
+%%% End:

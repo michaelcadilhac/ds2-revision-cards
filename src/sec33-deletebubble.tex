@@ -1,0 +1,258 @@
+\documentclass[12pt,letterpaper,USenglish]{article}
+
+\usepackage[most]{tcolorbox}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{microtype}
+\usepackage{tikz}
+\usepackage{paralist}
+\usetikzlibrary{calc,positioning,backgrounds,intersections,graphdrawing,shapes,graphs,arrows,arrows.meta}
+\usegdlibrary{trees}
+
+%%% Please use define.org for macros.
+\input{define.orgtex}
+
+\begin{document}
+
+\tikzset{lead/.style={anchor=north west,font=\it\bfseries,text=algs4red},
+  treenode/.style={draw, minimum
+      height=13pt, fill=white,inner sep=3pt, font=\footnotesize,
+      rounded rectangle},
+    algs4arrow/.style={->,>={Latex[length=7pt]},line width=0.8mm,algs4red},
+    graphs/mytree/.style= {
+    tree layout,
+    sibling distance=5mm, level distance=5mm,
+    nodes={treenode},
+    edges={thick}}}
+
+\lstset{columns=fullflexible}
+
+\newsavebox{\codebox}% For saving code
+\begin{lrbox}{\codebox}
+\begin{lstalgs4}
+|delete|(tree, key)$\rule[-10pt]{0cm}{0pt}$
+    if key! is at the root of !tree
+      if tree! is a leaf!
+        !remove !key! from it and !return
+      else
+        subtree = !child after !key
+        !replace !key! with !min(subtree)! in !tree!'s root!
+        key = min(subtree)
+    else
+      subtree = !child in which !key! could be!
+    |delete|(subtree, key)
+    if subtree!'s root is a !1-!node!
+      |bubbleup|(tree, subtree)
+\end{lstalgs4}
+\end{lrbox}
+
+
+\newsavebox{\bubblebox}% For saving code
+\begin{lrbox}{\bubblebox}
+\begin{lstalgs4}
+|bubbleup|(tree, subtree)$\rule[-10pt]{0cm}{0pt}$
+    if subtree!'s left sibling is a !3-!node!
+      !rebalance from left sibling!
+    else if subtree!'s right sibling is a !3-!node!
+      !rebalance from right sibling!
+    else if subtree! has a left sibling!
+      !merge left sibling with its parent's key!
+    else
+      !merge right sibling with its parent's key!
+\end{lstalgs4}
+\end{lrbox}
+
+\noindent\begin{tikzpicture}[every node/.style={anchor=north west}]
+  % Main background
+  \begin{scope}[on background layer]
+    \fill[black!10!white, draw=white, line width=6pt] (-.5\textwidth, 0) rectangle (.5\textwidth, -18cm);
+  \end{scope}
+
+  % Clip and left margin
+  \path [save path=\theframe, rounded corners] ($(-.5\textwidth, 0) + (1.5pt,-1.5pt)$)
+  rectangle ($(.5\textwidth, -18cm) + (-1.5pt, 1.5pt)$);
+  \clip [use path=\theframe];
+  \coordinate (left) at ($(-.5\textwidth, 0) + (0.3cm,0)$);
+
+  % Title
+  \node [anchor=north,text width=20cm,minimum height=1.4cm,align=center,fill=algs4red,text=white]
+  {\sffamily\Large \textbf{3.3}\quad BALANCED SEARCH TREES: BUBBLE DELETION IN 2-3 TREES};
+
+  % Main algorithm
+  \begin{scope}[anchor=north west, shift={($(left) + (0.75, -2cm)$)}]
+    % Background & lead
+    \begin{scope}[on background layer]
+      \fill[black!15] (-.5, 0) rectangle (18, -8.5);
+    \end{scope}
+    \node[lead,draw=none,shape=rectangle] (alg) at (-.3, -0.2) {Main algorithms.};
+    
+
+    \node [xshift=.5cm, yshift=-0cm, text width=15cm,anchor=north west] (code) at
+    (alg.south west) {\usebox{\codebox}};
+    \draw [thick]
+    ($(code.north west) + (0.1, -0.7)$) -- +(5cm, 0) -|
+    ($(code.north west) + (0.43, -0.9)$) |- ($(code.south west) + (1.8, -0.1)$);
+
+    \node [xshift=9.5cm, yshift=-0cm, text width=15cm,anchor=north west] (code)
+    at (alg.south west) {\usebox{\bubblebox}};
+    \draw [thick]
+    ($(code.north west) + (0.1, -0.7)$) -- +(5cm, 0) -|
+    ($(code.north west) + (0.43, -0.9)$) |- ($(code.south west) + (1.8, -0.1)$);
+
+    \node[yshift=-.2cm, font=\itshape,text width=8cm] at (code.south west)
+    {\begin{compactitem}
+      \item[\large\(\color{algs4red}+\)] After all the recursive calls to
+        \lstinline{|delete|}, if \lstinline{tree}'s root is a \texttt{1-}node,
+        then set \lstinline{tree} to be \lstinline{tree}'s only child (if
+        non-\lstinline{null}).
+      \end{compactitem}};
+
+  \end{scope}
+
+  
+      
+  % Rebalance
+  \begin{scope}[shift={($(left) + (0.5cm,-11.4cm)$)},
+    every node/.style={anchor=south},
+    note/.style={font=\footnotesize},
+    subtree/.style={draw=none,fill=none},
+    edgenote/.style={algs4red,->,>=stealth',shorten >=3pt}]
+
+    % Background & lead
+    \begin{scope}[on background layer]
+      \fill[black!15] (-0.07, 0.4) rectangle (9.5, -6);
+    \end{scope}
+    \node[lead,draw=none,shape=rectangle] at (0, 0.3) {Rebalancing.};
+
+    %% Left heavy
+    \graph [mytree] {
+      root [x = 3cm,y=-1cm,draw=none,as={\phantom{\(2~~~7~~~9\)}}];
+      root --[gray] { a [as={\color{gray}\(T_1\)},subtree]};
+      root --
+      { 46 [as={\(4~~6\)}] --
+        { b [as={\(T_2\)},subtree],
+          c [as={\(T_3\)},subtree],
+          d [as={\(T_4\)},subtree] },
+        es [as={},minimum size=2pt,fill=black] --
+        { e [as={\(T_5\)},subtree]}};
+      root --[gray]
+      { f [as={\color{gray}\(T_6\)},subtree]}};
+    \node[anchor=west, treenode,draw=gray] at (root.west) {\color{gray}\(2~~~7\)};
+    \node[anchor=east, treenode,draw=gray,fill=none] at (root.east) {\(7~~~\color{gray}9\)};
+
+    \node[font=\footnotesize] (t) at (4, -0.2) {\texttt{tree}};
+    \draw (t.west) edge [bend right,edgenote] (root.north);
+
+    \node[font=\footnotesize] (t) at (2.5, -3) {\texttt{subtree}};
+    \draw[edgenote] (t.east) .. controls +(0.5cm, 0) and +(-0.5cm, -0.2cm) ..  (es.south west);
+
+    \node[font=\itshape\footnotesize,text width=3cm, align=center] (g) at (7, -1)
+    {\color{gray}Grayed parts may or may not be there};
+    \draw (g.west) edge[bend right=20,edgenote,draw=gray] +(-1.3cm, -.5cm);
+
+    %% Right heavy
+    \graph [mytree] {
+      root [x = 3cm,y=-4cm,draw=none,as={\phantom{\(2~~~4~~~9\)}}];
+      root --[gray] { a [as={\color{gray}\(T_1\)},subtree]};
+      root --
+      { es [as={},minimum size=2pt,fill=black] --
+        { e [as={\(T_2\)},subtree]},
+       67 [as={\(6~~7\)}] --
+        { b [as={\(T_3\)},subtree],
+          c [as={\(T_4\)},subtree],
+          d [as={\(T_5\)},subtree] }};
+      root --[gray]
+      { f [as={\color{gray}\(T_6\)},subtree]}};
+    \node[anchor=west, treenode,draw=gray] at (root.west) {\color{gray}\(2~~~4\)};
+    \node[anchor=east, treenode,draw=gray,fill=none] at (root.east) {\(4~~~\color{gray}9\)};
+
+    %% Rebalanced
+    \graph [mytree] {
+      root [x = 7.2cm,y=-2.5cm,draw=none,as={\phantom{\(2~~~6~~~9\)}}];
+      root --[gray] { a [as={\color{gray}\(T_1\)},subtree]};
+      root --
+      { es [as={\(4\)}] --
+        { e [as={\(T_2\)},subtree],
+          b [as={\(T_3\)},subtree]},
+       7 [as={\(7\)}] --
+        { c [as={\(T_4\)},subtree],
+          d [as={\(T_5\)},subtree] }};
+      root --[gray]
+      { f [as={\color{gray}\(T_6\)},subtree]}};
+    \node[anchor=west, treenode,draw=gray] at (root.west) {\color{gray}\(2~~~6\)};
+    \node[anchor=east, treenode,draw=gray,fill=none] at (root.east) {\(6~~~\color{gray}9\)};
+
+    \draw[algs4arrow] (4.cm, -3.6cm) -- +(.8cm, .3cm);
+    \draw[algs4arrow] (5cm, -1.6cm) -- +(.8cm, -.3cm);
+
+  \end{scope}
+
+  %% Merge
+  \begin{scope}[shift={($(left) + (10.6cm,-11.4cm)$)},
+    every node/.style={anchor=south},
+    note/.style={font=\footnotesize},
+    subtree/.style={draw=none,fill=none},
+    edgenote/.style={algs4red,->,>=stealth',shorten >=3pt}]
+
+    % Background & lead
+    \begin{scope}[on background layer]
+      \fill[black!15] (-0.07, 0.4) rectangle (8, -6);
+    \end{scope}
+    \node[lead,draw=none,shape=rectangle] at (0, 0.3) {Merging.};
+
+    %% Left heavy
+    \graph [mytree] {
+      root [x = 2.5cm,y=-1cm,draw=none,as={\phantom{\(2~~~7~~~9\)}}];
+      root --[gray] { a [as={\color{gray}\(T_1\)},subtree]};
+      root --
+      { 46 [as={\(4\)}] --
+        { b [as={\(T_2\)},subtree],
+          c [as={\(T_3\)},subtree]},
+        es [as={},minimum size=2pt,fill=black] --
+        { e [as={\(T_4\)},subtree]}};
+      root --[gray]
+      { f [as={\color{gray}\(T_5\)},subtree]}};
+    \node[anchor=west, treenode,draw=gray] at (root.west) {\color{gray}\(2~~~7\)};
+    \node[anchor=east, treenode,draw=gray,fill=none] at (root.east) {\(7~~~\color{gray}9\)};
+
+    %% Right heavy
+    \graph [mytree] {
+      root [x = 2.5cm,y=-4cm,draw=none,as={\phantom{\(2~~~4~~~9\)}}];
+      root --[gray] { a [as={\color{gray}\(T_1\)},subtree]};
+      root --
+      { es [as={},minimum size=2pt,fill=black] --
+        { e [as={\(T_2\)},subtree]},
+       67 [as={\(7\)}] --
+        { b [as={\(T_3\)},subtree],
+          c [as={\(T_4\)},subtree]}};
+      root --[gray]
+      { f [as={\color{gray}\(T_5\)},subtree]}};
+    \node[anchor=west, treenode,draw=gray] at (root.west) {\color{gray}\(2~~~4\)};
+    \node[anchor=east, treenode,draw=gray,fill=none] at (root.east) {\(4~~~\color{gray}9\)};
+
+    %% Rebalanced
+    \graph [mytree] {
+      root [x = 6.5cm,y=-2.5cm,draw=gray,as={\color{gray}{\(2~~9\)}}];
+      root --[gray] { a [as={\color{gray}\(T_1\)},subtree]};
+      root --
+      { es [as={\(4~~7\)}] --
+        { e [as={\(T_2\)},subtree],
+          b [as={\(T_3\)},subtree],
+          c [as={\(T_4\)},subtree] }};
+      root --[gray]
+      { f [as={\color{gray}\(T_5\)},subtree]}};
+
+    \node[font=\itshape\footnotesize, text width=1.7cm,align=center] (may) at
+    ($(root.north)+(0cm,1cm)$) {May become a \texttt{1-}node};
+    \draw[edgenote] (may.south) -- (root.north);
+
+    \draw[algs4arrow] (3.8cm, -3.6cm) -- +(.8cm, .3cm);
+    \draw[algs4arrow] (4.7cm, -1.6cm) -- +(.8cm, -.3cm);
+
+  \end{scope}
+
+  %% Box
+  \draw [algs4red,line width=3pt] [use path=\theframe];
+
+\end{tikzpicture}
+\end{document}
